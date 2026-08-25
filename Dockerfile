@@ -40,7 +40,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 -G nodejs
 
 # Copy manifests
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml prisma.config.ts ./
 COPY prisma ./prisma/
 
 # Install production deps only
