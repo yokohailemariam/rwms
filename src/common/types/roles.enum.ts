@@ -1,0 +1,8 @@
+export enum UserRole {
+  WORKER = 'WORKER',
+  SUPERVISOR = 'SUPERVISOR',
+  ADMIN = 'ADMIN',
+  OWNER = 'OWNER',
+  SAAS_ADMIN = 'SAAS_ADMIN',
+  KIOSK_DEVICE = 'KIOSK_DEVICE',
+}

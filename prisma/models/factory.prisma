@@ -1,0 +1,27 @@
+model Factory {
+    id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    tenantId  String        @db.Uuid
+    name      String
+    code      String
+    address   String
+    city      String
+    country   String
+    timezone  String        @default("UTC")
+    latitude  Float?
+    longitude Float?
+    status    FactoryStatus @default(ACTIVE)
+    createdAt DateTime      @default(now())
+    updatedAt DateTime      @updatedAt
+
+    tenant            Tenant              @relation(fields: [tenantId], references: [id])
+    workers           Worker[]
+    kiosks            KioskDevice[]
+    shifts            Shift[]
+    incidents         EmergencyIncident[]
+    departments       Department[]
+    attendanceRecords AttendanceRecord[]
+
+    @@unique([tenantId, code])
+    @@index([tenantId])
+    @@map("factories")
+}

@@ -1,0 +1,150 @@
+enum TenantStatus {
+  PROVISIONING
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum PlanTier {
+  STARTER
+  GROWTH
+  ENTERPRISE
+}
+
+enum UserRole {
+  WORKER
+  SUPERVISOR
+  ADMIN
+  OWNER
+  SAAS_ADMIN
+}
+
+enum WorkerStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+enum KioskStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  DECOMMISSIONED
+}
+
+enum AssignmentStatus {
+  SCHEDULED
+  COMPLETED
+  ABSENT
+  CANCELLED
+}
+
+enum ClockInMethod {
+  NFC
+  QR
+  FACIAL
+  PIN
+  MANUAL
+}
+
+enum ClockOutMethod {
+  NFC
+  QR
+  FACIAL
+  PIN
+  MANUAL
+  AUTO
+}
+
+enum AttendanceStatus {
+  ACTIVE
+  CORRECTED
+  VOIDED
+}
+
+enum SyncStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  PARTIAL_FAILURE
+  FAILED
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  WITHDRAWN
+}
+
+enum PayrollStatus {
+  DRAFT
+  PROCESSING
+  COMPLETED
+  APPROVED
+  PAID
+}
+
+enum PayslipStatus {
+  DRAFT
+  ISSUED
+  ACKNOWLEDGED
+}
+
+enum IncidentType {
+  FIRE
+  INJURY
+  EVACUATION
+  MEDICAL
+  SECURITY
+  OTHER
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVING
+  RESOLVED
+  CLOSED
+}
+
+enum NotificationType {
+  SMS
+  EMAIL
+  PUSH
+  IN_APP
+}
+
+enum NotifStatus {
+  PENDING
+  SENT
+  FAILED
+  READ
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  PUBLISHED
+  FAILED
+}
+
+enum SubStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+}
+
+enum FactoryStatus {
+  ACTIVE
+  INACTIVE
+}

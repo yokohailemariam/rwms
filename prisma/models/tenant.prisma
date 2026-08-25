@@ -1,0 +1,17 @@
+model Tenant {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  slug      String       @unique
+  status    TenantStatus @default(PROVISIONING)
+  planTier  PlanTier     @default(STARTER)
+  settings  Json         @default("{}")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  factories     Factory[]
+  users         User[]
+  workers       Worker[]
+  subscriptions Subscription?
+
+  @@map("tenants")
+}

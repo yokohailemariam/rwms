@@ -1,0 +1,33 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    command: pnpm start:dev
+    environment:
+      NODE_ENV: development
+      APP_PORT: 3000
+      DATABASE_URL: postgresql://rwms:rwms_pass@postgres:5432/rwms_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: redis_secret
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_GROUP_ID: rwms-group
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_USE_SSL: 'false'
+      MINIO_BUCKET_NAME: rwms-files
+      ELASTICSEARCH_NODE: http://elasticsearch:9200
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      JWT_ACCESS_SECRET: dev-access-secret-change-in-prod
+      JWT_REFRESH_SECRET: dev-refresh-secret-change-in-prod
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+    volumes:
+      - ./src:/app/src:delegated
+      - ./prisma:/app/prisma:delegated
+      - /app/node_modules

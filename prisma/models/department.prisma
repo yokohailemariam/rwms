@@ -1,0 +1,18 @@
+model Department {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String   @db.Uuid
+  factoryId String   @db.Uuid
+  name      String
+  code      String
+  managerId String?  @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  factory Factory  @relation(fields: [factoryId], references: [id])
+  workers Worker[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([factoryId])
+  @@map("departments")
+}

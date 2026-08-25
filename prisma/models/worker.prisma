@@ -1,0 +1,38 @@
+model Worker {
+  id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId          String       @db.Uuid
+  userId            String?      @unique @db.Uuid
+  factoryId         String       @db.Uuid
+  departmentId      String?      @db.Uuid
+  employeeId        String
+  firstName         String
+  lastName          String
+  phone             String?
+  email             String?
+  nfcCardId         String?
+  biometricEnrolled Boolean      @default(false)
+  jobTitle          String?
+  status            WorkerStatus @default(ACTIVE)
+  hireDate          DateTime
+  salary            Decimal?     @db.Decimal(10, 2)
+  currency          String       @default("USD")
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id])
+  factory    Factory     @relation(fields: [factoryId], references: [id])
+  department Department? @relation(fields: [departmentId], references: [id])
+  user       User?       @relation(fields: [userId], references: [id])
+
+  attendanceRecords AttendanceRecord[]
+  leaveRequests     LeaveRequest[]
+  shiftAssignments  ShiftAssignment[]
+  leaveBalances     LeaveBalance[]
+  payslips          Payslip[]
+
+  @@unique([tenantId, employeeId])
+  @@index([tenantId])
+  @@index([factoryId])
+  @@index([nfcCardId])
+  @@map("workers")
+}

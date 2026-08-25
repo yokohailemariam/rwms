@@ -1,0 +1,43 @@
+model Shift {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String   @db.Uuid
+  factoryId       String   @db.Uuid
+  name            String
+  startTime       String
+  endTime         String
+  durationMinutes Int
+  breakMinutes    Int      @default(0)
+  isNightShift    Boolean  @default(false)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  factory           Factory            @relation(fields: [factoryId], references: [id])
+  assignments       ShiftAssignment[]
+  attendanceRecords AttendanceRecord[]
+
+  @@index([tenantId])
+  @@index([factoryId])
+  @@map("shifts")
+}
+
+model ShiftAssignment {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String           @db.Uuid
+  workerId  String           @db.Uuid
+  shiftId   String           @db.Uuid
+  factoryId String           @db.Uuid
+  date      DateTime
+  status    AssignmentStatus @default(SCHEDULED)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  worker Worker @relation(fields: [workerId], references: [id])
+  shift  Shift  @relation(fields: [shiftId], references: [id])
+
+  @@unique([workerId, date])
+  @@index([tenantId])
+  @@index([factoryId])
+  @@index([shiftId])
+  @@map("shift_assignments")
+}

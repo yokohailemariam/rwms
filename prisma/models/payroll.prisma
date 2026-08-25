@@ -1,0 +1,50 @@
+model PayrollPeriod {
+    id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    tenantId        String        @db.Uuid
+    name            String
+    startDate       DateTime
+    endDate         DateTime
+    status          PayrollStatus @default(DRAFT)
+    processedAt     DateTime?
+    approvedById    String?       @db.Uuid
+    totalGross      Decimal?      @db.Decimal(12, 2)
+    totalNet        Decimal?      @db.Decimal(12, 2)
+    totalDeductions Decimal?      @db.Decimal(12, 2)
+    currency        String        @default("USD")
+    createdAt       DateTime      @default(now())
+    updatedAt       DateTime      @updatedAt
+
+    payslips Payslip[]
+
+    @@index([tenantId])
+    @@index([status])
+    @@map("payroll_periods")
+}
+
+model Payslip {
+    id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    tenantId        String        @db.Uuid
+    workerId        String        @db.Uuid
+    payrollPeriodId String        @db.Uuid
+    basicSalary     Decimal       @db.Decimal(10, 2)
+    allowances      Json          @default("[]")
+    deductions      Json          @default("[]")
+    grossPay        Decimal       @db.Decimal(10, 2)
+    netPay          Decimal       @db.Decimal(10, 2)
+    hoursWorked     Decimal       @db.Decimal(8, 2)
+    overtimeHours   Decimal       @default(0) @db.Decimal(5, 2)
+    leaveDays       Decimal       @default(0) @db.Decimal(5, 1)
+    status          PayslipStatus @default(DRAFT)
+    issuedAt        DateTime?
+    pdfKey          String?
+    createdAt       DateTime      @default(now())
+    updatedAt       DateTime      @updatedAt
+
+    worker        Worker        @relation(fields: [workerId], references: [id])
+    payrollPeriod PayrollPeriod @relation(fields: [payrollPeriodId], references: [id])
+
+    @@unique([workerId, payrollPeriodId])
+    @@index([tenantId])
+    @@index([workerId])
+    @@map("payslips")
+}

@@ -1,0 +1,64 @@
+model LeaveType {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId           String   @db.Uuid
+  name               String
+  code               String
+  daysAllowedPerYear Int
+  isPaid             Boolean  @default(true)
+  requiresApproval   Boolean  @default(true)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+
+  leaveRequests LeaveRequest[]
+  leaveBalances LeaveBalance[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("leave_types")
+}
+
+model LeaveBalance {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String   @db.Uuid
+  workerId    String   @db.Uuid
+  leaveTypeId String   @db.Uuid
+  year        Int
+  totalDays   Decimal  @db.Decimal(5, 1)
+  usedDays    Decimal  @default(0) @db.Decimal(5, 1)
+  pendingDays Decimal  @default(0) @db.Decimal(5, 1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  worker    Worker    @relation(fields: [workerId], references: [id])
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+
+  @@unique([workerId, leaveTypeId, year])
+  @@index([tenantId])
+  @@index([workerId])
+  @@map("leave_balances")
+}
+
+model LeaveRequest {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId      String      @db.Uuid
+  workerId      String      @db.Uuid
+  leaveTypeId   String      @db.Uuid
+  approverId    String?     @db.Uuid
+  startDate     DateTime
+  endDate       DateTime
+  requestedDays Decimal     @db.Decimal(5, 1)
+  reason        String?
+  status        LeaveStatus @default(PENDING)
+  approverNotes String?
+  reviewedAt    DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  worker    Worker    @relation(fields: [workerId], references: [id])
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+
+  @@index([tenantId])
+  @@index([workerId])
+  @@index([status])
+  @@map("leave_requests")
+}

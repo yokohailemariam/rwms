@@ -1,0 +1,57 @@
+model AuditLog {
+    id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    tenantId      String?  @db.Uuid
+    actorId       String?  @db.Uuid
+    actorRole     String?
+    action        String
+    resourceType  String
+    resourceId    String?
+    ipAddress     String?
+    userAgent     String?
+    correlationId String?
+    metadata      Json?
+    createdAt     DateTime @default(now())
+
+    @@index([tenantId])
+    @@index([actorId])
+    @@index([resourceType])
+    @@index([createdAt])
+    @@map("audit_logs")
+}
+
+model OutboxEvent {
+    id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    eventType     String
+    aggregateId   String
+    aggregateType String
+    tenantId      String?      @db.Uuid
+    payload       Json
+    status        OutboxStatus @default(PENDING)
+    attempts      Int          @default(0)
+    lastAttemptAt DateTime?
+    publishedAt   DateTime?
+    createdAt     DateTime     @default(now())
+
+    @@index([status])
+    @@index([createdAt])
+    @@map("outbox_events")
+}
+
+model Subscription {
+    id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    tenantId           String    @unique @db.Uuid
+    planTier           PlanTier
+    status             SubStatus @default(ACTIVE)
+    currentPeriodStart DateTime
+    currentPeriodEnd   DateTime
+    workerLimit        Int
+    kioskLimit         Int
+    externalId         String?
+    createdAt          DateTime  @default(now())
+    updatedAt          DateTime  @updatedAt
+
+    tenant Tenant @relation(fields: [tenantId], references: [id])
+
+    @@index([tenantId])
+    @@map("subscriptions")
+}

@@ -1,0 +1,24 @@
+model EmergencyIncident {
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId            String         @db.Uuid
+  factoryId           String         @db.Uuid
+  reporterId          String         @db.Uuid
+  incidentType        IncidentType
+  severity            Severity
+  title               String
+  description         String
+  location            String
+  status              IncidentStatus @default(OPEN)
+  affectedWorkerCount Int?
+  resolvedAt          DateTime?
+  resolvedById        String?        @db.Uuid
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  factory Factory @relation(fields: [factoryId], references: [id])
+
+  @@index([tenantId])
+  @@index([factoryId])
+  @@index([status])
+  @@map("emergency_incidents")
+}

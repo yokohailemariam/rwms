@@ -1,0 +1,44 @@
+model KioskDevice {
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String      @db.Uuid
+  factoryId       String      @db.Uuid
+  serialNumber    String      @unique
+  name            String
+  publicKey       String      @db.Text
+  status          KioskStatus @default(PENDING)
+  lastHeartbeatAt DateTime?
+  lastSyncAt      DateTime?
+  firmwareVersion String?
+  settings        Json        @default("{}")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  factory           Factory            @relation(fields: [factoryId], references: [id])
+  attendanceRecords AttendanceRecord[]
+  syncBatches       KioskSyncBatch[]
+
+  @@index([tenantId])
+  @@index([factoryId])
+  @@map("kiosk_devices")
+}
+
+model KioskSyncBatch {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId       String     @db.Uuid
+  kioskId        String     @db.Uuid
+  batchReference String     @unique
+  recordCount    Int
+  processedCount Int        @default(0)
+  failedCount    Int        @default(0)
+  status         SyncStatus @default(PENDING)
+  payload        Json
+  errorLog       Json?
+  createdAt      DateTime   @default(now())
+  processedAt    DateTime?
+
+  kiosk KioskDevice @relation(fields: [kioskId], references: [id])
+
+  @@index([tenantId])
+  @@index([kioskId])
+  @@map("kiosk_sync_batches")
+}

@@ -1,0 +1,37 @@
+model AttendanceRecord {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String           @db.Uuid
+  workerId        String           @db.Uuid
+  factoryId       String           @db.Uuid
+  shiftId         String?          @db.Uuid
+  kioskId         String?          @db.Uuid
+  clockInTime     DateTime
+  clockOutTime    DateTime?
+  clockInMethod   ClockInMethod
+  clockOutMethod  ClockOutMethod?
+  status          AttendanceStatus @default(ACTIVE)
+  hoursWorked     Decimal?         @db.Decimal(5, 2)
+  overtimeHours   Decimal?         @db.Decimal(5, 2)
+  isLate          Boolean          @default(false)
+  minutesLate     Int?
+  breakMinutes    Int              @default(0)
+  coordinates     Json?
+  isRetroactive   Boolean          @default(false)
+  syncedFromKiosk Boolean          @default(false)
+  correctedById   String?          @db.Uuid
+  correctedAt     DateTime?
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  worker  Worker       @relation(fields: [workerId], references: [id])
+  factory Factory      @relation(fields: [factoryId], references: [id])
+  shift   Shift?       @relation(fields: [shiftId], references: [id])
+  kiosk   KioskDevice? @relation(fields: [kioskId], references: [id])
+
+  @@index([tenantId])
+  @@index([workerId])
+  @@index([factoryId])
+  @@index([clockInTime])
+  @@map("attendance_records")
+}
