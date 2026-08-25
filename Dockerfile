@@ -56,7 +56,7 @@ COPY --from=builder /app/dist ./dist/
 RUN chown -R nestjs:nodejs /app
 USER nestjs
 
-EXPOSE 3000
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \

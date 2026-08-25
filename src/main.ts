@@ -53,8 +53,8 @@ async function bootstrap() {
     swaggerOptions: { persistAuthorization: true },
   });
 
-  const port = process.env.PORT || 3000;
-  await app.listen(port);
+  const port = process.env.PORT || 8080;
+  await app.listen(port, '0.0.0.0');
   logger.log(`RWMS API running on port ${port}`);
   logger.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
