@@ -8,6 +8,7 @@ import {
 import { UserRole } from '../types/roles.enum';
 import { ForbiddenException } from '../exceptions/domain.exception';
 import { ERROR_CODES } from '../constants/error-codes.constant';
+import { TenantRequest } from '../types/tenant-context.type';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -23,7 +24,7 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<TenantRequest>();
     const user = request.user;
 
     if (!user || !user.role) {

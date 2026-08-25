@@ -4,6 +4,13 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 
+interface DeviceJwtPayload {
+  sub: string;
+  tenantId: string;
+  factoryId: string;
+  type: string;
+}
+
 @Injectable()
 export class DeviceJwtStrategy extends PassportStrategy(
   Strategy,
@@ -16,11 +23,12 @@ export class DeviceJwtStrategy extends PassportStrategy(
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey:
-        configService.get('jwt.accessSecret') || 'change-me-access-secret',
+        configService.get<string>('jwt.accessSecret') ||
+        'change-me-access-secret',
     });
   }
 
-  async validate(payload: any) {
+  async validate(payload: DeviceJwtPayload) {
     if (payload.type !== 'kiosk')
       throw new UnauthorizedException('Invalid device token');
 

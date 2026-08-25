@@ -3,6 +3,7 @@ import { NotFoundException } from '@nestjs/common';
 import { ApproveKioskCommand } from './approve-kiosk.command';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { Prisma } from '../../../../infrastructure/database/generated/prisma/client';
 
 @CommandHandler(ApproveKioskCommand)
 export class ApproveKioskHandler implements ICommandHandler<ApproveKioskCommand> {
@@ -32,7 +33,7 @@ export class ApproveKioskHandler implements ICommandHandler<ApproveKioskCommand>
       data: {
         status: 'ACTIVE',
         settings: {
-          ...((device.settings as any) || {}),
+          ...((device.settings as Prisma.JsonObject | null) || {}),
           approvedBy: command.approvedBy,
           deviceToken,
         },

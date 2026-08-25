@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import { getErrorMessage } from '../../../../common/utils/error.util';
 
 @Injectable()
 export class EmailProvider {
@@ -27,8 +28,10 @@ export class EmailProvider {
         html: body,
       });
       this.logger.log(`Email sent to ${to}: ${subject}`);
-    } catch (err: any) {
-      this.logger.error(`Failed to send email to ${to}: ${err.message}`);
+    } catch (err) {
+      this.logger.error(
+        `Failed to send email to ${to}: ${getErrorMessage(err)}`,
+      );
       throw err;
     }
   }

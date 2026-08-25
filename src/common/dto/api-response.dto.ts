@@ -12,7 +12,7 @@ export interface PaginationMeta {
 export class ApiResponseDto<T> {
   success: boolean;
   data?: T;
-  error?: { code: string; message: string; details?: any };
+  error?: { code: string; message: string; details?: unknown };
   meta?: PaginationMeta;
   correlationId: string;
   timestamp: string;
@@ -38,7 +38,7 @@ export class ApiResponseDto<T> {
   static error(
     code: string,
     message: string,
-    details?: any,
+    details?: unknown,
     correlationId?: string,
   ): ApiResponseDto<never> {
     const response = new ApiResponseDto<never>();

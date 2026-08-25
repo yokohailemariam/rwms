@@ -2,6 +2,10 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ReportIncidentCommand } from './report-incident.command';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { OutboxService } from '../../../../infrastructure/outbox/outbox.service';
+import {
+  IncidentType,
+  Severity,
+} from '../../../../infrastructure/database/generated/prisma/client';
 
 @CommandHandler(ReportIncidentCommand)
 export class ReportIncidentHandler implements ICommandHandler<ReportIncidentCommand> {
@@ -16,8 +20,8 @@ export class ReportIncidentHandler implements ICommandHandler<ReportIncidentComm
         tenantId: command.tenantId,
         factoryId: command.factoryId,
         reporterId: command.reportedBy,
-        incidentType: command.incidentType as any,
-        severity: command.severity as any,
+        incidentType: command.incidentType as IncidentType,
+        severity: command.severity as Severity,
         title: command.title,
         description: command.description,
         location: command.location,

@@ -9,6 +9,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { PrismaService } from '../database/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { HealthIndicatorResult } from '@nestjs/terminus';
+import { getErrorMessage } from '../../common/utils/error.util';
 
 @ApiTags('Health')
 @Controller('health')
@@ -49,7 +50,7 @@ export class HealthController {
       }
       return { redis: { status: 'down', message: 'Unexpected value' } };
     } catch (error) {
-      return { redis: { status: 'down', message: error.message } };
+      return { redis: { status: 'down', message: getErrorMessage(error) } };
     }
   }
 }

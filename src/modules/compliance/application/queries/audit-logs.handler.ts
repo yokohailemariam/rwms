@@ -1,13 +1,14 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { AuditLogsQuery } from './audit-logs.query';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import { Prisma } from '../../../../infrastructure/database/generated/prisma/client';
 
 @QueryHandler(AuditLogsQuery)
 export class AuditLogsHandler implements IQueryHandler<AuditLogsQuery> {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(query: AuditLogsQuery) {
-    const where: any = { tenantId: query.tenantId };
+    const where: Prisma.AuditLogWhereInput = { tenantId: query.tenantId };
     if (query.userId) where.actorId = query.userId;
     if (query.action)
       where.action = { contains: query.action, mode: 'insensitive' };

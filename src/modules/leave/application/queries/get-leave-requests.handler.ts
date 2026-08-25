@@ -1,15 +1,19 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { GetLeaveRequestsQuery } from './get-leave-requests.query';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import {
+  LeaveStatus,
+  Prisma,
+} from '../../../../infrastructure/database/generated/prisma/client';
 
 @QueryHandler(GetLeaveRequestsQuery)
 export class GetLeaveRequestsHandler implements IQueryHandler<GetLeaveRequestsQuery> {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(query: GetLeaveRequestsQuery) {
-    const where: any = { tenantId: query.tenantId };
+    const where: Prisma.LeaveRequestWhereInput = { tenantId: query.tenantId };
     if (query.workerId) where.workerId = query.workerId;
-    if (query.status) where.status = query.status;
+    if (query.status) where.status = query.status as LeaveStatus;
 
     const skip = (query.page - 1) * query.limit;
     const [items, total] = await Promise.all([

@@ -4,6 +4,12 @@ import { Job } from 'bullmq';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { QUEUE_NAMES } from '../../common/constants/queue-names.constant';
 
+interface GeneratePayslipsJobData {
+  tenantId: string;
+  periodId: string;
+  triggeredBy: string;
+}
+
 @Processor(QUEUE_NAMES.PAYROLL)
 export class PayrollProcessor extends WorkerHost {
   private readonly logger = new Logger(PayrollProcessor.name);
@@ -12,7 +18,7 @@ export class PayrollProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job) {
+  async process(job: Job<GeneratePayslipsJobData>) {
     this.logger.log(`Processing payroll job: ${job.name} [${job.id}]`);
     switch (job.name) {
       case 'generate-payslips':

@@ -7,6 +7,7 @@ import { hashPassword } from '../../../../common/utils/hash.util';
 import { ConflictException } from '../../../../common/exceptions/domain.exception';
 import { ERROR_CODES } from '../../../../common/constants/error-codes.constant';
 import { generateSecureToken } from '../../../../common/utils/crypto.util';
+import { PlanTier } from '../../../../infrastructure/database/generated/prisma/client';
 
 @CommandHandler(CreateTenantCommand)
 export class CreateTenantHandler implements ICommandHandler<CreateTenantCommand> {
@@ -48,7 +49,7 @@ export class CreateTenantHandler implements ICommandHandler<CreateTenantCommand>
           name,
           slug,
           status: 'PROVISIONING',
-          planTier: planTier as any,
+          planTier: planTier as PlanTier,
           settings: {},
         },
       });
@@ -72,7 +73,7 @@ export class CreateTenantHandler implements ICommandHandler<CreateTenantCommand>
       await tx.subscription.create({
         data: {
           tenantId: tenant.id,
-          planTier: planTier as any,
+          planTier: planTier as PlanTier,
           status: 'ACTIVE',
           currentPeriodStart: now,
           currentPeriodEnd: periodEnd,

@@ -5,6 +5,13 @@ import { PrismaService } from '../../infrastructure/database/prisma.service';
 import { EmailProvider } from './infrastructure/providers/email.provider';
 import { SmsProvider } from './infrastructure/providers/sms.provider';
 import { QUEUE_NAMES } from '../../common/constants/queue-names.constant';
+import { getErrorMessage } from '../../common/utils/error.util';
+
+interface NotificationJobData {
+  notificationId: string;
+  recipientEmail?: string;
+  recipientPhone?: string;
+}
 
 @Processor(QUEUE_NAMES.NOTIFICATIONS)
 export class NotificationProcessor extends WorkerHost {
@@ -18,7 +25,7 @@ export class NotificationProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job) {
+  async process(job: Job<NotificationJobData>) {
     const { notificationId, recipientEmail, recipientPhone } = job.data;
 
     const notification = await this.prisma.notification.findUnique({
@@ -37,7 +44,7 @@ export class NotificationProcessor extends WorkerHost {
           notification.body,
         );
       } else if (notification.channel === 'SMS' && recipientPhone) {
-        await this.smsProvider.sendSms(recipientPhone, notification.body);
+        this.smsProvider.sendSms(recipientPhone, notification.body);
       } else {
         this.logger.log(`In-app notification ${notificationId} stored`);
       }
@@ -46,9 +53,9 @@ export class NotificationProcessor extends WorkerHost {
         where: { id: notificationId },
         data: { status: 'SENT', sentAt: new Date() },
       });
-    } catch (err: any) {
+    } catch (err) {
       this.logger.error(
-        `Failed to send notification ${notificationId}: ${err.message}`,
+        `Failed to send notification ${notificationId}: ${getErrorMessage(err)}`,
       );
       await this.prisma.notification.update({
         where: { id: notificationId },

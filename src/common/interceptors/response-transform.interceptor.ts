@@ -7,6 +7,7 @@ import {
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiResponseDto } from '../dto/api-response.dto';
+import { TenantRequest } from '../types/tenant-context.type';
 
 @Injectable()
 export class ResponseTransformInterceptor<T> implements NestInterceptor<
@@ -15,13 +16,13 @@ export class ResponseTransformInterceptor<T> implements NestInterceptor<
 > {
   intercept(
     context: ExecutionContext,
-    next: CallHandler,
+    next: CallHandler<T>,
   ): Observable<ApiResponseDto<T>> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<TenantRequest>();
     const correlationId = request.correlationId;
 
     return next.handle().pipe(
-      map((data) => {
+      map((data: T): ApiResponseDto<T> => {
         // If already an ApiResponseDto, pass through
         if (data instanceof ApiResponseDto) {
           return data;
@@ -33,7 +34,7 @@ export class ResponseTransformInterceptor<T> implements NestInterceptor<
           'success' in data &&
           'timestamp' in data
         ) {
-          return data;
+          return data as unknown as ApiResponseDto<T>;
         }
         return ApiResponseDto.success(data, undefined, correlationId);
       }),

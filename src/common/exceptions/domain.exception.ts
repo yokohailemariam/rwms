@@ -32,9 +32,9 @@ export class ForbiddenException extends DomainException {
 }
 
 export class ValidationException extends DomainException {
-  public readonly details?: any;
+  public readonly details?: unknown;
 
-  constructor(code: string, message: string, details?: any) {
+  constructor(code: string, message: string, details?: unknown) {
     super(code, message, 400);
     this.details = details;
   }

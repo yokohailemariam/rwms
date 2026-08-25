@@ -14,7 +14,7 @@ export class RefreshTokenHandler implements ICommandHandler<RefreshTokenCommand>
   ) {}
 
   async execute(command: RefreshTokenCommand) {
-    let payload: any;
+    let payload: Awaited<ReturnType<TokenService['verifyRefreshToken']>>;
     try {
       payload = await this.tokenService.verifyRefreshToken(
         command.refreshToken,

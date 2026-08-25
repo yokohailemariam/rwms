@@ -7,9 +7,9 @@ export class SmsProvider {
 
   constructor(private readonly config: ConfigService) {}
 
-  async sendSms(to: string, message: string): Promise<void> {
+  sendSms(to: string, message: string): void {
     // Placeholder — integrate with Twilio/Africa's Talking/etc.
-    const provider = this.config.get('SMS_PROVIDER') || 'mock';
+    const provider = this.config.get<string>('SMS_PROVIDER') || 'mock';
 
     if (provider === 'mock') {
       this.logger.log(`[MOCK SMS] To: ${to} | Message: ${message}`);

@@ -1,13 +1,14 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { ListPayslipsQuery } from './list-payslips.query';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import { Prisma } from '../../../../infrastructure/database/generated/prisma/client';
 
 @QueryHandler(ListPayslipsQuery)
 export class ListPayslipsHandler implements IQueryHandler<ListPayslipsQuery> {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(query: ListPayslipsQuery) {
-    const where: any = { tenantId: query.tenantId };
+    const where: Prisma.PayslipWhereInput = { tenantId: query.tenantId };
     if (query.workerId) where.workerId = query.workerId;
     if (query.periodId) where.payrollPeriodId = query.periodId;
 

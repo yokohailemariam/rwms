@@ -2,6 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { NotFoundException } from '@nestjs/common';
 import { CorrectAttendanceCommand } from './correct-attendance.command';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import { Prisma } from '../../../../infrastructure/database/generated/prisma/client';
 
 @CommandHandler(CorrectAttendanceCommand)
 export class CorrectAttendanceHandler implements ICommandHandler<CorrectAttendanceCommand> {
@@ -16,12 +17,12 @@ export class CorrectAttendanceHandler implements ICommandHandler<CorrectAttendan
     const newClockIn = command.clockInTime ?? record.clockInTime;
     const newClockOut = command.clockOutTime ?? record.clockOutTime;
 
-    let hoursWorked = record.hoursWorked;
-    let overtimeHours = record.overtimeHours;
+    let hoursWorked: Prisma.Decimal | number | null = record.hoursWorked;
+    let overtimeHours: Prisma.Decimal | number | null = record.overtimeHours;
     if (newClockOut) {
       const totalMs = newClockOut.getTime() - newClockIn.getTime();
-      hoursWorked = Number((totalMs / (1000 * 60 * 60)).toFixed(2)) as any;
-      overtimeHours = Math.max(0, Number(hoursWorked) - 8) as any;
+      hoursWorked = Number((totalMs / (1000 * 60 * 60)).toFixed(2));
+      overtimeHours = Math.max(0, Number(hoursWorked) - 8);
     }
 
     return this.prisma.attendanceRecord.update({

@@ -5,13 +5,25 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Kafka, Producer, RecordMetadata, CompressionTypes } from 'kafkajs';
+import {
+  Kafka,
+  Producer,
+  RecordMetadata,
+  CompressionTypes,
+  Message,
+} from 'kafkajs';
+import { getErrorMessage } from '../../common/utils/error.util';
 
 export interface KafkaMessage {
   topic: string;
   key: string;
-  value: any;
+  value: unknown;
   headers?: Record<string, string>;
+}
+
+interface KafkaConfig {
+  clientId: string;
+  brokers: string[];
 }
 
 @Injectable()
@@ -22,7 +34,7 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
   private connected = false;
 
   constructor(private configService: ConfigService) {
-    const kafkaConfig = this.configService.get('kafka');
+    const kafkaConfig = this.configService.get<KafkaConfig>('kafka');
     this.kafka = new Kafka({
       clientId: kafkaConfig?.clientId || 'rwms-api',
       brokers: kafkaConfig?.brokers || ['localhost:29092'],
@@ -52,7 +64,10 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
       this.connected = true;
       this.logger.log('Kafka producer connected');
     } catch (error) {
-      this.logger.error('Failed to connect Kafka producer', error.message);
+      this.logger.error(
+        'Failed to connect Kafka producer',
+        getErrorMessage(error),
+      );
     }
   }
 
@@ -62,14 +77,17 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
       await this.producer.disconnect();
       this.connected = false;
     } catch (error) {
-      this.logger.error('Failed to disconnect Kafka producer', error.message);
+      this.logger.error(
+        'Failed to disconnect Kafka producer',
+        getErrorMessage(error),
+      );
     }
   }
 
   async publish(
     topic: string,
     key: string,
-    value: any,
+    value: unknown,
     headers?: Record<string, string>,
   ): Promise<RecordMetadata[]> {
     if (!this.connected) {
@@ -110,7 +128,7 @@ export class KafkaProducer implements OnModuleInit, OnModuleDestroy {
         }
         return acc;
       },
-      [] as Array<{ topic: string; messages: any[] }>,
+      [] as Array<{ topic: string; messages: Message[] }>,
     );
 
     await this.producer.sendBatch({ topicMessages });

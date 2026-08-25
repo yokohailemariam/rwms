@@ -14,6 +14,6 @@ export class SendNotificationCommand implements ICommand {
     public readonly body: string,
     public readonly recipientEmail?: string,
     public readonly recipientPhone?: string,
-    public readonly data?: Record<string, any>,
+    public readonly data?: Record<string, unknown>,
   ) {}
 }

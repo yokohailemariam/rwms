@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { AuthenticatedUser } from './jwt-payload.type';
 
 export interface TenantContext {
   tenantId: string;
@@ -8,5 +9,6 @@ export interface TenantContext {
 
 export interface TenantRequest extends Request {
   tenantContext?: TenantContext;
-  user?: any;
+  user?: AuthenticatedUser;
+  correlationId?: string;
 }

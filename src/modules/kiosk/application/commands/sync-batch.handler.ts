@@ -2,6 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
 import { SyncBatchCommand, SyncRecord } from './sync-batch.command';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import { getErrorMessage } from '../../../../common/utils/error.util';
 
 @CommandHandler(SyncBatchCommand)
 export class SyncBatchHandler implements ICommandHandler<SyncBatchCommand> {
@@ -22,14 +23,13 @@ export class SyncBatchHandler implements ICommandHandler<SyncBatchCommand> {
           command.deviceId,
         );
         results.push({ localId: record.localId, status: 'SUCCESS' });
-      } catch (err: any) {
-        this.logger.warn(
-          `Sync record failed: ${record.localId} - ${err.message}`,
-        );
+      } catch (err) {
+        const error = getErrorMessage(err);
+        this.logger.warn(`Sync record failed: ${record.localId} - ${error}`);
         results.push({
           localId: record.localId,
           status: 'FAILED',
-          error: err.message,
+          error,
         });
       }
     }

@@ -3,6 +3,10 @@ import { BadRequestException } from '@nestjs/common';
 import { ClockOutCommand } from './clock-out.command';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { DuplicateDetectionService } from '../../domain/duplicate-detection.service';
+import {
+  ClockOutMethod,
+  Prisma,
+} from '../../../../infrastructure/database/generated/prisma/client';
 
 @CommandHandler(ClockOutCommand)
 export class ClockOutHandler implements ICommandHandler<ClockOutCommand> {
@@ -28,7 +32,7 @@ export class ClockOutHandler implements ICommandHandler<ClockOutCommand> {
       Number((hoursWorked - standardHours).toFixed(2)),
     );
 
-    const methodMap: Record<string, string> = {
+    const methodMap: Record<string, ClockOutMethod> = {
       NFC: 'NFC',
       KIOSK: 'NFC',
       MOBILE: 'QR',
@@ -37,7 +41,7 @@ export class ClockOutHandler implements ICommandHandler<ClockOutCommand> {
     };
     const clockOutMethod = methodMap[command.source] ?? 'MANUAL';
 
-    const updateData: any = {
+    const updateData: Prisma.AttendanceRecordUncheckedUpdateInput = {
       clockOutTime: command.timestamp,
       clockOutMethod,
       hoursWorked,

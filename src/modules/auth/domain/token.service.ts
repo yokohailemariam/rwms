@@ -8,6 +8,11 @@ import { JwtPayload } from '../../../common/types/jwt-payload.type';
 
 const REFRESH_TOKEN_PREFIX = 'refresh:';
 
+interface JwtConfig {
+  refreshSecret: string;
+  refreshExpiresIn: string;
+}
+
 @Injectable()
 export class TokenService {
   private refreshSecret: Uint8Array;
@@ -18,7 +23,8 @@ export class TokenService {
     private readonly redis: RedisService,
   ) {
     const secret =
-      this.configService.get('jwt.refreshSecret') || 'change-me-refresh';
+      this.configService.get<JwtConfig>('jwt')?.refreshSecret ||
+      'change-me-refresh';
     this.refreshSecret = new TextEncoder().encode(secret);
   }
 
@@ -39,7 +45,8 @@ export class TokenService {
 
   async issueRefreshToken(userId: string, familyId: string): Promise<string> {
     const token = randomUUID();
-    const expiresIn = this.configService.get('jwt.refreshExpiresIn') || '7d';
+    const expiresIn =
+      this.configService.get<JwtConfig>('jwt')?.refreshExpiresIn || '7d';
     const expiryMs = this.parseDuration(expiresIn);
 
     const jwtToken = await new SignJWT({ sub: userId, familyId, token })
@@ -68,7 +75,18 @@ export class TokenService {
     token: string;
   }> {
     const { payload } = await jwtVerify(jwtToken, this.refreshSecret);
-    return payload as any;
+    if (
+      typeof payload.sub !== 'string' ||
+      typeof payload.familyId !== 'string' ||
+      typeof payload.token !== 'string'
+    ) {
+      throw new Error('Invalid refresh token payload');
+    }
+    return {
+      sub: payload.sub,
+      familyId: payload.familyId,
+      token: payload.token,
+    };
   }
 
   async getRefreshTokenData(
@@ -76,7 +94,7 @@ export class TokenService {
   ): Promise<{ userId: string; familyId: string } | null> {
     const data = await this.redis.get(`${REFRESH_TOKEN_PREFIX}${token}`);
     if (!data) return null;
-    return JSON.parse(data);
+    return JSON.parse(data) as { userId: string; familyId: string };
   }
 
   async revokeRefreshToken(token: string): Promise<void> {
@@ -94,7 +112,7 @@ export class TokenService {
   private parseDuration(duration: string): number {
     const match = duration.match(/^(\d+)([smhd])$/);
     if (!match) return 7 * 24 * 60 * 60 * 1000;
-    const value = parseInt(match[1]);
+    const value = parseInt(match[1], 10);
     const unit = match[2];
     const multipliers: Record<string, number> = {
       s: 1000,
@@ -102,6 +120,6 @@ export class TokenService {
       h: 60 * 60 * 1000,
       d: 24 * 60 * 60 * 1000,
     };
-    return value * multipliers[unit];
+    return value * (multipliers[unit] ?? multipliers.d);
   }
 }

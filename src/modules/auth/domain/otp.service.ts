@@ -5,6 +5,10 @@ import { generateOtp } from '../../../common/utils/crypto.util';
 const OTP_TTL = 300; // 5 minutes
 const OTP_PREFIX = 'otp:';
 
+interface StoredOtp {
+  code: string;
+}
+
 @Injectable()
 export class OtpService {
   constructor(private readonly redis: RedisService) {}
@@ -23,7 +27,7 @@ export class OtpService {
     const stored = await this.redis.get(`${OTP_PREFIX}${identifier}`);
     if (!stored) return false;
 
-    const { code: storedCode } = JSON.parse(stored);
+    const { code: storedCode } = JSON.parse(stored) as StoredOtp;
     if (storedCode !== code) return false;
 
     // Single-use: delete after verify

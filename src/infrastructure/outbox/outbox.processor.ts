@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../database/prisma.service';
 import { KafkaProducer } from '../kafka/kafka.producer';
 import { RedisService } from '../redis/redis.service';
+import { getErrorMessage } from '../../common/utils/error.util';
 
 const OUTBOX_LOCK_KEY = 'outbox:processor:lock';
 const OUTBOX_LOCK_TTL = 30; // seconds
@@ -79,7 +80,7 @@ export class OutboxProcessor implements OnModuleInit {
           });
         } catch (error) {
           this.logger.error(
-            `Failed to publish outbox event ${event.id}: ${error.message}`,
+            `Failed to publish outbox event ${event.id}: ${getErrorMessage(error)}`,
           );
           const newAttempts = event.attempts + 1;
           await this.prisma.outboxEvent.update({
@@ -93,7 +94,7 @@ export class OutboxProcessor implements OnModuleInit {
         }
       }
     } catch (error) {
-      this.logger.error(`Outbox processor error: ${error.message}`);
+      this.logger.error(`Outbox processor error: ${getErrorMessage(error)}`);
     } finally {
       await this.releaseLock();
     }

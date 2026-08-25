@@ -1,6 +1,16 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Minio from 'minio';
+import { getErrorMessage } from '../../common/utils/error.util';
+
+interface StorageConfig {
+  endpoint: string;
+  port: number;
+  useSSL: boolean;
+  accessKey: string;
+  secretKey: string;
+  bucketName: string;
+}
 
 @Injectable()
 export class StorageService implements OnModuleInit {
@@ -9,7 +19,7 @@ export class StorageService implements OnModuleInit {
   private defaultBucket: string;
 
   constructor(private configService: ConfigService) {
-    const storageConfig = this.configService.get('storage');
+    const storageConfig = this.configService.get<StorageConfig>('storage');
     this.defaultBucket = storageConfig?.bucketName || 'rwms-files';
 
     this.client = new Minio.Client({
@@ -34,7 +44,7 @@ export class StorageService implements OnModuleInit {
       }
     } catch (error) {
       this.logger.error(
-        `Failed to ensure bucket '${bucketName}': ${error.message}`,
+        `Failed to ensure bucket '${bucketName}': ${getErrorMessage(error)}`,
       );
     }
   }
@@ -58,7 +68,9 @@ export class StorageService implements OnModuleInit {
     const stream = await this.client.getObject(bucket, key);
     return new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
-      stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+      stream.on('data', (chunk: Buffer | string) =>
+        chunks.push(Buffer.from(chunk)),
+      );
       stream.on('end', () => resolve(Buffer.concat(chunks)));
       stream.on('error', reject);
     });

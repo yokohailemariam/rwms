@@ -3,6 +3,10 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ClockInCommand } from './clock-in.command';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { DuplicateDetectionService } from '../../domain/duplicate-detection.service';
+import {
+  ClockInMethod,
+  Prisma,
+} from '../../../../infrastructure/database/generated/prisma/client';
 
 @CommandHandler(ClockInCommand)
 export class ClockInHandler implements ICommandHandler<ClockInCommand> {
@@ -36,7 +40,7 @@ export class ClockInHandler implements ICommandHandler<ClockInCommand> {
     if (hasOpen) throw new BadRequestException('Worker already clocked in');
 
     // Map source to valid ClockInMethod enum value
-    const methodMap: Record<string, string> = {
+    const methodMap: Record<string, ClockInMethod> = {
       NFC: 'NFC',
       KIOSK: 'NFC',
       MOBILE: 'QR',
@@ -45,7 +49,7 @@ export class ClockInHandler implements ICommandHandler<ClockInCommand> {
     };
     const clockInMethod = methodMap[command.source] ?? 'MANUAL';
 
-    const data: any = {
+    const data: Prisma.AttendanceRecordUncheckedCreateInput = {
       tenantId: command.tenantId,
       workerId: command.workerId,
       factoryId: command.factoryId,

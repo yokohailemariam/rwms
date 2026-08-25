@@ -4,6 +4,7 @@ import { UserRole } from '../types/roles.enum';
 import { ROLES_KEY } from '../constants/permissions.constant';
 import { ForbiddenException } from '../exceptions/domain.exception';
 import { ERROR_CODES } from '../constants/error-codes.constant';
+import { TenantRequest } from '../types/tenant-context.type';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -19,7 +20,7 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<TenantRequest>();
     const user = request.user;
 
     if (!user || !user.role) {
@@ -29,7 +30,8 @@ export class RolesGuard implements CanActivate {
       );
     }
 
-    const hasRole = requiredRoles.some((role) => user.role === role);
+    const userRole = user.role as UserRole;
+    const hasRole = requiredRoles.includes(userRole);
     if (!hasRole) {
       throw new ForbiddenException(
         ERROR_CODES.AUTH_INSUFFICIENT_PERMISSIONS,

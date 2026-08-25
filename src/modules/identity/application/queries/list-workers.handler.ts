@@ -1,16 +1,20 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { ListWorkersQuery } from './list-workers.query';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import {
+  Prisma,
+  WorkerStatus,
+} from '../../../../infrastructure/database/generated/prisma/client';
 
 @QueryHandler(ListWorkersQuery)
 export class ListWorkersHandler implements IQueryHandler<ListWorkersQuery> {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(query: ListWorkersQuery) {
-    const where: any = { tenantId: query.tenantId };
+    const where: Prisma.WorkerWhereInput = { tenantId: query.tenantId };
     if (query.factoryId) where.factoryId = query.factoryId;
     if (query.departmentId) where.departmentId = query.departmentId;
-    if (query.status) where.status = query.status;
+    if (query.status) where.status = query.status as WorkerStatus;
     if (query.search) {
       where.OR = [
         { firstName: { contains: query.search, mode: 'insensitive' } },

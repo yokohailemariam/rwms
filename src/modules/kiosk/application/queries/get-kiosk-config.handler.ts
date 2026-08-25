@@ -2,6 +2,7 @@ import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { NotFoundException } from '@nestjs/common';
 import { GetKioskConfigQuery } from './get-kiosk-config.query';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import { Prisma } from '../../../../infrastructure/database/generated/prisma/client';
 
 @QueryHandler(GetKioskConfigQuery)
 export class GetKioskConfigHandler implements IQueryHandler<GetKioskConfigQuery> {
@@ -16,7 +17,7 @@ export class GetKioskConfigHandler implements IQueryHandler<GetKioskConfigQuery>
     });
     if (!device) throw new NotFoundException('Kiosk device not found');
 
-    const settings = (device.settings as any) || {};
+    const settings = (device.settings || {}) as Prisma.JsonObject;
     const shifts = await this.prisma.shift.findMany({
       where: {
         tenantId: query.tenantId,

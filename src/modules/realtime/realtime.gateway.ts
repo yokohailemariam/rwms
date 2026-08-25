@@ -9,6 +9,21 @@ import {
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from '../../common/types/jwt-payload.type';
+import { getErrorMessage } from '../../common/utils/error.util';
+
+interface RealtimeSocketData {
+  userId?: string;
+  tenantId?: string | null;
+  role?: string;
+}
+
+type RealtimeSocket = Socket<
+  Record<string, unknown>,
+  Record<string, unknown>,
+  Record<string, unknown>,
+  RealtimeSocketData
+>;
 
 @WebSocketGateway({
   cors: { origin: '*', credentials: true },
@@ -28,46 +43,63 @@ export class RealtimeGateway
     this.logger.log('Realtime WebSocket Gateway initialized');
   }
 
-  async handleConnection(client: Socket) {
+  async handleConnection(client: RealtimeSocket) {
     try {
-      const token =
-        client.handshake.auth?.token ||
-        client.handshake.headers?.authorization?.replace('Bearer ', '');
+      const authToken =
+        typeof client.handshake.auth.token === 'string'
+          ? client.handshake.auth.token
+          : undefined;
+      const authHeader = client.handshake.headers.authorization;
+      const headerToken =
+        typeof authHeader === 'string'
+          ? authHeader.replace('Bearer ', '')
+          : undefined;
+      const token = authToken || headerToken;
       if (!token) throw new Error('No token provided');
 
-      const payload = this.jwtService.verify(token);
+      const payload = this.jwtService.verify<JwtPayload>(token);
       client.data.userId = payload.sub;
       client.data.tenantId = payload.tenantId;
       client.data.role = payload.role;
 
       // Join tenant room for broadcasts
-      await client.join(`tenant:${payload.tenantId}`);
+      if (payload.tenantId) {
+        await client.join(`tenant:${payload.tenantId}`);
+      }
 
       this.logger.log(`Client connected: ${client.id} (user: ${payload.sub})`);
-    } catch (err: any) {
+    } catch (err) {
       this.logger.warn(
-        `Client ${client.id} connection rejected: ${err.message}`,
+        `Client ${client.id} connection rejected: ${getErrorMessage(err)}`,
       );
       client.disconnect();
     }
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(client: RealtimeSocket) {
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
   @SubscribeMessage('subscribe:factory')
-  handleFactorySubscription(client: Socket, factoryId: string) {
-    client.join(`factory:${factoryId}`);
+  handleFactorySubscription(client: RealtimeSocket, factoryId: string) {
+    void client.join(`factory:${factoryId}`);
     return { subscribed: factoryId };
   }
 
   // Broadcast methods called from other services
-  broadcastAttendanceEvent(tenantId: string, factoryId: string, event: any) {
+  broadcastAttendanceEvent(
+    tenantId: string,
+    factoryId: string,
+    event: unknown,
+  ) {
     this.server.to(`factory:${factoryId}`).emit('attendance:update', event);
   }
 
-  broadcastEmergencyAlert(tenantId: string, factoryId: string, incident: any) {
+  broadcastEmergencyAlert(
+    tenantId: string,
+    factoryId: string,
+    incident: unknown,
+  ) {
     this.server.to(`tenant:${tenantId}`).emit('emergency:alert', {
       factoryId,
       incident,
@@ -75,7 +107,7 @@ export class RealtimeGateway
     });
   }
 
-  broadcastNotification(userId: string, notification: any) {
+  broadcastNotification(userId: string, notification: unknown) {
     this.server.to(`user:${userId}`).emit('notification:new', notification);
   }
 }

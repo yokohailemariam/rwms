@@ -22,6 +22,16 @@ import { GetKioskConfigQuery } from '../../application/queries/get-kiosk-config.
 import { RegisterKioskDto } from './dto/register-kiosk.dto';
 import { SyncBatchDto } from './dto/sync-batch.dto';
 
+interface DeviceAuthUser {
+  deviceId: string;
+  tenantId: string;
+  factoryId: string;
+}
+
+interface DeviceRequest extends Request {
+  user?: DeviceAuthUser;
+}
+
 @ApiTags('Kiosk')
 @Controller('api/v1/kiosk')
 export class KioskController {
@@ -64,8 +74,11 @@ export class KioskController {
   @UseGuards(AuthGuard('device-jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get kiosk configuration (device auth)' })
-  getConfig(@Req() req: Request) {
-    const device = req.user as any;
+  getConfig(@Req() req: DeviceRequest) {
+    const device = req.user;
+    if (!device) {
+      throw new Error('Device auth user missing');
+    }
     return this.queryBus.execute(
       new GetKioskConfigQuery(device.tenantId, device.deviceId),
     );
@@ -75,8 +88,11 @@ export class KioskController {
   @UseGuards(AuthGuard('device-jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Sync offline attendance records (device auth)' })
-  sync(@Req() req: Request, @Body() dto: SyncBatchDto) {
-    const device = req.user as any;
+  sync(@Req() req: DeviceRequest, @Body() dto: SyncBatchDto) {
+    const device = req.user;
+    if (!device) {
+      throw new Error('Device auth user missing');
+    }
     return this.commandBus.execute(
       new SyncBatchCommand(
         device.tenantId,
