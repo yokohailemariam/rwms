@@ -230,3 +230,21 @@ Before production deployment:
 - Run `pnpm typecheck`, `pnpm test`, and `pnpm build`.
 - Apply migrations with `pnpm prisma:migrate`.
 - Review tenant isolation, role permissions, public routes, and audit requirements.
+
+## CQRS Pattern
+
+                    Application
+                        │
+             ┌──────────┴──────────┐
+             │                     │
+          COMMAND                QUERY
+             │                     │
+        Change state             Read state
+             │                     │
+       CommandHandler           QueryHandler
+             │                     │
+          Repository             Repository
+             │                     │
+             └─────────┬───────────┘
+                       │
+                    Database
